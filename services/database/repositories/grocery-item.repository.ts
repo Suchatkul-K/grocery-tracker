@@ -8,9 +8,9 @@ import { generateId } from '@/services/utils/id-generator';
 class GroceryItemRepository extends BaseRepository {
   /**
    * Create a new grocery item
-   * If initialStockLevel > 0, records an initial stock transaction
+   * If initialStockLevel > 0, records an initial stock transaction (requires userId)
    */
-  async createGroceryItem(input: GroceryItemInput, userId: string): Promise<GroceryItem> {
+  async createGroceryItem(input: GroceryItemInput, userId?: string): Promise<GroceryItem> {
     const id = generateId();
     const now = Date.now();
     
@@ -31,7 +31,12 @@ class GroceryItemRepository extends BaseRepository {
     const notes = input.notes ?? null;
     const expirationDate = input.expirationDate ?? null;
 
-    this.execute(
+    // Validate userId is provided when initialStockLevel > 0
+    if (stockLevel > 0 && !userId) {
+      throw new Error('userId is required when initialStockLevel > 0');
+    }
+
+    await this.execute(
       `INSERT INTO grocery_items 
        (id, name, category_id, household_id, restock_threshold, unit, notes, expiration_date, stock_level, created_at, updated_at) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -39,14 +44,14 @@ class GroceryItemRepository extends BaseRepository {
     );
 
     // If initial stock > 0, record as transaction
-    if (stockLevel > 0) {
-    // Record transaction
-    const transactionId = generateId();
-    this.execute(
-      `INSERT INTO stock_transactions (id, grocery_item_id, user_id, transaction_type, quantity, timestamp)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [transactionId, id, userId, 'add', stockLevel, now]
-    );
+    if (stockLevel > 0 && userId) {
+      // Record transaction
+      const transactionId = generateId();
+      await this.execute(
+        `INSERT INTO stock_transactions (id, grocery_item_id, user_id, transaction_type, quantity, timestamp)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [transactionId, id, userId, 'add', stockLevel, now]
+      );
     }
 
     await this.save();
@@ -204,7 +209,7 @@ class GroceryItemRepository extends BaseRepository {
       params.push(Date.now());
 
       params.push(id);
-      this.execute(
+      await this.execute(
         `UPDATE grocery_items SET ${updateFields.join(', ')} WHERE id = ?`,
         params
       );
@@ -216,7 +221,7 @@ class GroceryItemRepository extends BaseRepository {
    * Delete a grocery item
    */
   async deleteGroceryItem(id: string): Promise<void> {
-    this.execute('DELETE FROM grocery_items WHERE id = ?', [id]);
+    await this.execute('DELETE FROM grocery_items WHERE id = ?', [id]);
     await this.save();
   }
 
@@ -224,7 +229,7 @@ class GroceryItemRepository extends BaseRepository {
    * Delete all grocery items for a household
    */
   async deleteHouseholdGroceryItems(householdId: string): Promise<void> {
-    this.execute('DELETE FROM grocery_items WHERE household_id = ?', [householdId]);
+    await this.execute('DELETE FROM grocery_items WHERE household_id = ?', [householdId]);
     await this.save();
   }
 }

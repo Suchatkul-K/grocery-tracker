@@ -64,7 +64,7 @@ export async function populateSampleData(
     user = await userRepository.getUser('default-user');
     if (!user) {
       // Create with specific ID 'default-user' to match AppContext
-      user = await userRepository.createUser('Default User', 'default-user');
+      user = await userRepository.createUser('Demo User', 'default-user');
     }
   }
   

@@ -326,11 +326,11 @@ describe('Requirements Verification', () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
       
-      const category1 = await db.category.create('Dairy', household.id);
-      const category2 = await db.category.create('Produce', household.id);
+      const category1 = await db.category.create('TestDairy', household.id);
+      const category2 = await db.category.create('TestProduce', household.id);
       
-      expect(category1.name).toBe('Dairy');
-      expect(category2.name).toBe('Produce');
+      expect(category1.name).toBe('TestDairy');
+      expect(category2.name).toBe('TestProduce');
       expect(category1.id).not.toBe(category2.id);
     });
 
@@ -346,7 +346,7 @@ describe('Requirements Verification', () => {
     it('3.3 - Allows users to assign category to grocery item', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -360,8 +360,8 @@ describe('Requirements Verification', () => {
     it('3.4 - Displays grocery items grouped by category', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category1 = await db.category.create('Dairy', household.id);
-      const category2 = await db.category.create('Produce', household.id);
+      const category1 = await db.category.create('TestDairy', household.id);
+      const category2 = await db.category.create('TestProduce', household.id);
       
       await db.groceryItem.create({
         name: 'Milk',
@@ -385,7 +385,7 @@ describe('Requirements Verification', () => {
     it('3.5 - Uses colorful visual styling for categories', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       expect(category.color).toBeDefined();
       expect(category.color.length).toBeGreaterThan(0);
@@ -396,7 +396,7 @@ describe('Requirements Verification', () => {
     it('4.1 - Creates grocery items with all required metadata', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -419,7 +419,7 @@ describe('Requirements Verification', () => {
     it('4.2 - Stores grocery item in local database', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -434,7 +434,7 @@ describe('Requirements Verification', () => {
     it('4.3 - Initializes stock level to zero or user-specified value', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item1 = await db.groceryItem.create({
         name: 'Milk',
@@ -447,7 +447,7 @@ describe('Requirements Verification', () => {
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 12,
-      });
+      }, owner.id);
       
       expect(item1.stockLevel).toBe(0);
       expect(item2.stockLevel).toBe(12);
@@ -456,7 +456,7 @@ describe('Requirements Verification', () => {
     it('4.4 - Associates grocery item with household', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -470,7 +470,7 @@ describe('Requirements Verification', () => {
     it('4.5 - Allows users to edit grocery item metadata', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -496,7 +496,7 @@ describe('Requirements Verification', () => {
     it('4.6 - Allows users to delete grocery items', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -515,14 +515,14 @@ describe('Requirements Verification', () => {
     it('5.1 - Displays stock level for each grocery item', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 5,
-      });
+      }, owner.id);
       
       const stockLevel = await db.stock.getLevel(item.id);
       expect(stockLevel).toBe(5);
@@ -531,14 +531,14 @@ describe('Requirements Verification', () => {
     it('5.2 - Retrieves stock level from local database', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 3,
-      });
+      }, owner.id);
       
       const items = await db.groceryItem.getAll(household.id);
       const retrievedItem = items.find(i => i.id === item.id);
@@ -549,14 +549,14 @@ describe('Requirements Verification', () => {
     it('5.3 - Updates display when stock level changes (within 1 second)', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 5,
-      });
+      }, owner.id);
       
       const startTime = Date.now();
       await db.stock.add(item.id, 3, owner.id);
@@ -570,21 +570,21 @@ describe('Requirements Verification', () => {
     it('5.4 - Displays stock levels organized by category', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category1 = await db.category.create('Dairy', household.id);
-      const category2 = await db.category.create('Produce', household.id);
+      const category1 = await db.category.create('TestDairy', household.id);
+      const category2 = await db.category.create('TestProduce', household.id);
       
       await db.groceryItem.create({
         name: 'Milk',
         categoryId: category1.id,
         householdId: household.id,
         initialStockLevel: 2,
-      });
+      }, owner.id);
       await db.groceryItem.create({
         name: 'Apples',
         categoryId: category2.id,
         householdId: household.id,
         initialStockLevel: 8,
-      });
+      }, owner.id);
       
       const items = await db.groceryItem.getAll(household.id);
       const itemsByCategory = items.reduce((acc, item) => {
@@ -603,14 +603,14 @@ describe('Requirements Verification', () => {
     it('6.1 - Increases stock level by specified quantity', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 2,
-      });
+      }, owner.id);
       
       await db.stock.add(item.id, 3, owner.id);
       
@@ -621,14 +621,14 @@ describe('Requirements Verification', () => {
     it('6.2 - Updates local database when stock is added', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 2,
-      });
+      }, owner.id);
       
       await db.stock.add(item.id, 3, owner.id);
       
@@ -640,7 +640,7 @@ describe('Requirements Verification', () => {
     it('6.3 - Records timestamp and user who added stock', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -664,14 +664,14 @@ describe('Requirements Verification', () => {
     it('6.4 - Displays updated stock level after adding', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 2,
-      });
+      }, owner.id);
       
       await db.stock.add(item.id, 3, owner.id);
       
@@ -685,7 +685,7 @@ describe('Requirements Verification', () => {
     it('6.1.1 - Displays history view showing all stock transactions', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -703,7 +703,7 @@ describe('Requirements Verification', () => {
     it('6.1.2 - Displays user who performed each transaction', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -721,7 +721,7 @@ describe('Requirements Verification', () => {
     it('6.1.3 - Displays timestamp for each transaction', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -739,7 +739,7 @@ describe('Requirements Verification', () => {
     it('6.1.4 - Displays quantity for each transaction', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -756,7 +756,7 @@ describe('Requirements Verification', () => {
     it('6.1.5 - Displays transaction type (add or use)', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -776,7 +776,7 @@ describe('Requirements Verification', () => {
     it('6.1.6 - Displays when item was initially created', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -792,7 +792,7 @@ describe('Requirements Verification', () => {
     it('6.1.7 - Sorts history by timestamp descending (most recent first)', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -814,14 +814,14 @@ describe('Requirements Verification', () => {
     it('7.1 - Decreases stock level by specified quantity', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 5,
-      });
+      }, owner.id);
       
       await db.stock.use(item.id, 2, owner.id);
       
@@ -832,14 +832,14 @@ describe('Requirements Verification', () => {
     it('7.2 - Updates local database when stock is used', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 5,
-      });
+      }, owner.id);
       
       await db.stock.use(item.id, 2, owner.id);
       
@@ -851,14 +851,14 @@ describe('Requirements Verification', () => {
     it('7.3 - Records timestamp and user who used stock', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 5,
-      });
+      }, owner.id);
       
       const beforeTime = Date.now();
       await db.stock.use(item.id, 2, owner.id);
@@ -876,14 +876,14 @@ describe('Requirements Verification', () => {
     it('7.4 - Sets stock to zero if would become negative', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 2,
-      });
+      }, owner.id);
       
       await db.stock.use(item.id, 5, owner.id);
       
@@ -896,7 +896,7 @@ describe('Requirements Verification', () => {
     it('8.1 - Identifies items where stock level is at or below restock threshold', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const lowStockItem = await db.groceryItem.create({
         name: 'Milk',
@@ -904,7 +904,7 @@ describe('Requirements Verification', () => {
         householdId: household.id,
         restockThreshold: 5,
         initialStockLevel: 3,
-      });
+      }, owner.id);
       
       const normalItem = await db.groceryItem.create({
         name: 'Eggs',
@@ -912,7 +912,7 @@ describe('Requirements Verification', () => {
         householdId: household.id,
         restockThreshold: 5,
         initialStockLevel: 10,
-      });
+      }, owner.id);
       
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
       const lowStockIds = lowStockItems.map(i => i.id);
@@ -924,7 +924,7 @@ describe('Requirements Verification', () => {
     it('8.2 - Identifies items where expiration date has passed or is within 3 days', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const now = Date.now();
       const twoDaysFromNow = now + 2 * 24 * 60 * 60 * 1000;
@@ -954,7 +954,7 @@ describe('Requirements Verification', () => {
     it('8.3 - Displays list of items needing restock', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       await db.groceryItem.create({
         name: 'Milk',
@@ -962,7 +962,7 @@ describe('Requirements Verification', () => {
         householdId: household.id,
         restockThreshold: 5,
         initialStockLevel: 2,
-      });
+      }, owner.id);
       
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
       expect(lowStockItems.length).toBeGreaterThan(0);
@@ -971,7 +971,7 @@ describe('Requirements Verification', () => {
     it('8.4 - Displays list of expired or expiring items', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const twoDaysFromNow = Date.now() + 2 * 24 * 60 * 60 * 1000;
       
@@ -989,7 +989,7 @@ describe('Requirements Verification', () => {
     it('8.5 - Allows viewing low stock, expired, or both simultaneously', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
       const expiringItems = await db.inventory.getExpiringItems(household.id, 3);
@@ -1001,7 +1001,7 @@ describe('Requirements Verification', () => {
     it('8.6 - Visually highlights items needing restock', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
@@ -1009,7 +1009,7 @@ describe('Requirements Verification', () => {
         householdId: household.id,
         restockThreshold: 5,
         initialStockLevel: 2,
-      });
+      }, owner.id);
       
       const status = await db.inventory.calculateNotificationStatus(item.id);
       expect(status.isLowStock).toBe(true);
@@ -1018,7 +1018,7 @@ describe('Requirements Verification', () => {
     it('8.7 - Visually highlights expired or expiring items', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const twoDaysFromNow = Date.now() + 2 * 24 * 60 * 60 * 1000;
       
@@ -1036,7 +1036,7 @@ describe('Requirements Verification', () => {
     it('8.8 - Displays both indicators when item has low stock and expiration issues', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const twoDaysFromNow = Date.now() + 2 * 24 * 60 * 60 * 1000;
       
@@ -1047,7 +1047,7 @@ describe('Requirements Verification', () => {
         restockThreshold: 5,
         initialStockLevel: 2,
         expirationDate: twoDaysFromNow,
-      });
+      }, owner.id);
       
       const status = await db.inventory.calculateNotificationStatus(item.id);
       expect(status.isLowStock).toBe(true);
@@ -1089,14 +1089,14 @@ describe('Requirements Verification', () => {
     it('9.4 - Persists changes to local database within 500ms', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 5,
-      });
+      }, owner.id);
       
       const startTime = Date.now();
       await db.stock.use(item.id, 2, owner.id);
@@ -1181,7 +1181,7 @@ describe('Requirements Verification', () => {
     it('11.2 - Uses colorful visual styling throughout interface', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       expect(category.color).toBeDefined();
       expect(category.color).toMatch(/^#[0-9A-Fa-f]{6}$/);
@@ -1201,8 +1201,8 @@ describe('Requirements Verification', () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
       
-      const category1 = await db.category.create('Dairy', household.id);
-      const category2 = await db.category.create('Produce', household.id);
+      const category1 = await db.category.create('TestDairy', household.id);
+      const category2 = await db.category.create('TestProduce', household.id);
       
       expect(category1.color).not.toBe(category2.color);
     });
@@ -1210,14 +1210,14 @@ describe('Requirements Verification', () => {
     it('11.5 - Provides visual feedback within 200ms for user interactions', async () => {
       const owner = await db.user.create('Owner');
       const household = await db.household.create('Test Household', owner.id);
-      const category = await db.category.create('Dairy', household.id);
+      const category = await db.category.create('TestDairy', household.id);
       
       const item = await db.groceryItem.create({
         name: 'Milk',
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 5,
-      });
+      }, owner.id);
       
       const startTime = Date.now();
       await db.stock.add(item.id, 2, owner.id);

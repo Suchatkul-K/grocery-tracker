@@ -15,17 +15,10 @@ describe('JoinHouseholdForm Integration', () => {
   let testHouseholdId: string;
   let referenceCode: string;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     // Initialize database connection
     await dbConnection.initialize();
     
-    // Create schema if needed
-    try {
-      await db.user.get('test-id');
-    } catch (error) {
-      await schemaManager.createSchema();
-    }
-
     // Create test user
     const user = await db.user.create('Test User');
     testUserId = user.id;

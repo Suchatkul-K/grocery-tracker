@@ -21,14 +21,14 @@ class StockRepository extends BaseRepository {
     const now = timestamp ?? Date.now();
 
     // Update stock level
-    this.execute(
+    await this.execute(
       'UPDATE grocery_items SET stock_level = stock_level + ?, updated_at = ? WHERE id = ?',
       [quantity, now, itemId]
     );
 
     // Record transaction
     const transactionId = generateId();
-    this.execute(
+    await this.execute(
       `INSERT INTO stock_transactions (id, grocery_item_id, user_id, transaction_type, quantity, timestamp)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [transactionId, itemId, userId, 'add', quantity, now]
@@ -69,14 +69,14 @@ class StockRepository extends BaseRepository {
     }
 
     // Update stock level
-    this.execute(
+    await this.execute(
       'UPDATE grocery_items SET stock_level = ?, updated_at = ? WHERE id = ?',
       [newStockLevel, now, itemId]
     );
 
     // Record transaction
     const transactionId = generateId();
-    this.execute(
+    await this.execute(
       `INSERT INTO stock_transactions (id, grocery_item_id, user_id, transaction_type, quantity, timestamp)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [transactionId, itemId, userId, 'use', quantity, now]

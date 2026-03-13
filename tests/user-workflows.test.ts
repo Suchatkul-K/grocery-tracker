@@ -85,8 +85,8 @@ describe('User Workflows', () => {
       // Add member to household
       await db.membership.addMemberDirectly(household.id, member.id);
 
-      // Transfer ownership (requires current owner ID)
-      await db.household.transferOwnership(household.id, owner.id, member.id);
+      // Transfer ownership (only needs household ID and new owner ID)
+      await db.household.transferOwnership(household.id, member.id);
 
       // Verify new owner role
       const newOwnerRole = await db.membership.getUserRole(member.id, household.id);
@@ -124,7 +124,7 @@ describe('User Workflows', () => {
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 5,
-      });
+      }, owner.id);
 
       // Add stock transaction
       await db.stock.add(item.id, 3, owner.id);
@@ -248,7 +248,7 @@ describe('User Workflows', () => {
         notes: 'Prefer Gala apples',
         expirationDate: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days from now
         initialStockLevel: 10,
-      });
+      }, owner.id);
 
       expect(item).toBeDefined();
       expect(item.name).toBe('Apples');
@@ -384,7 +384,7 @@ describe('User Workflows', () => {
         unit: 'kg',
         restockThreshold: 2,
         initialStockLevel: 5,
-      });
+      }, owner.id);
     });
 
     it('should complete stock addition workflow', async () => {
@@ -515,7 +515,7 @@ describe('User Workflows', () => {
         restockThreshold: 10,
         unit: 'kg',
         initialStockLevel: 5, // Below threshold
-      });
+      }, owner.id);
 
       // Step 2: Check low stock items
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
@@ -543,7 +543,7 @@ describe('User Workflows', () => {
         unit: 'pieces',
         expirationDate: twoDaysFromNow,
         initialStockLevel: 5,
-      });
+      }, owner.id);
 
       // Step 2: Check expiring items (within 3 days)
       const expiringItems = await db.inventory.getExpiringItems(household.id, 3);
@@ -565,7 +565,7 @@ describe('User Workflows', () => {
         unit: 'pieces',
         expirationDate: yesterday,
         initialStockLevel: 2,
-      });
+      }, owner.id);
 
       // Step 2: Check expiring items
       const expiringItems = await db.inventory.getExpiringItems(household.id, 3);
@@ -587,7 +587,7 @@ describe('User Workflows', () => {
         unit: 'pieces',
         expirationDate: tomorrow,
         initialStockLevel: 2, // Below threshold
-      });
+      }, owner.id);
 
       // Step 2: Verify appears in both notification lists
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
@@ -611,7 +611,7 @@ describe('User Workflows', () => {
         restockThreshold: 10,
         unit: 'kg',
         initialStockLevel: 5,
-      });
+      }, owner.id);
 
       const expiringItem = await db.groceryItem.create({
         name: 'Milk',
@@ -620,7 +620,7 @@ describe('User Workflows', () => {
         unit: 'liters',
         expirationDate: Date.now() + 2 * 24 * 60 * 60 * 1000,
         initialStockLevel: 10,
-      });
+      }, owner.id);
 
       const normalItem = await db.groceryItem.create({
         name: 'Pasta',
@@ -629,7 +629,7 @@ describe('User Workflows', () => {
         restockThreshold: 2,
         unit: 'kg',
         initialStockLevel: 10,
-      });
+      }, owner.id);
 
       // Get items with status
       const itemsWithStatus = await db.inventory.getItemsWithStatus(household.id);
@@ -710,7 +710,8 @@ describe('User Workflows', () => {
       const pantry = await db.category.create(`Pantry Staples ${testId}`, household.id, '#F7DC6F');
 
       const categories = await db.category.getAll(household.id);
-      expect(categories).toHaveLength(3);
+      // 5 default + 3 new = 8 categories
+      expect(categories).toHaveLength(8);
 
       // === Phase 4: Create grocery items ===
       const apples = await db.groceryItem.create({
@@ -720,7 +721,7 @@ describe('User Workflows', () => {
         restockThreshold: 5,
         unit: 'pieces',
         initialStockLevel: 10,
-      });
+      }, owner.id);
 
       const milk = await db.groceryItem.create({
         name: 'Milk',
@@ -730,7 +731,7 @@ describe('User Workflows', () => {
         unit: 'liters',
         expirationDate: Date.now() + 2 * 24 * 60 * 60 * 1000,
         initialStockLevel: 2,
-      });
+      }, owner.id);
 
       const rice = await db.groceryItem.create({
         name: 'Rice',
@@ -739,7 +740,7 @@ describe('User Workflows', () => {
         restockThreshold: 2,
         unit: 'kg',
         initialStockLevel: 5,
-      });
+      }, owner.id);
 
       const items = await db.groceryItem.getAll(household.id);
       expect(items).toHaveLength(3);
@@ -795,7 +796,7 @@ describe('User Workflows', () => {
       expect(updatedApples?.restockThreshold).toBe(8);
 
       // === Phase 9: Transfer ownership ===
-      await db.household.transferOwnership(household.id, owner.id, member.id);
+      await db.household.transferOwnership(household.id, member.id);
 
       // Verify roles switched
       expect(await db.membership.getUserRole(member.id, household.id)).toBe('owner');
@@ -813,7 +814,7 @@ describe('User Workflows', () => {
       const finalMembers = await db.membership.getHouseholdMembers(household.id);
 
       expect(finalItems).toHaveLength(3);
-      expect(finalCategories).toHaveLength(3);
+      expect(finalCategories).toHaveLength(8); // 5 default + 3 created
       expect(finalMembers).toHaveLength(2);
     });
   });

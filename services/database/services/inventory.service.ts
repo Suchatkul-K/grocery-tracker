@@ -32,15 +32,21 @@ class InventoryService {
   }
 
   /**
-   * Calculate notification status for a grocery item by ID
+   * Calculate notification status for a grocery item
+   * Can accept either an item ID (string) or a GroceryItem object
    */
-  async calculateNotificationStatus(itemId: string): Promise<NotificationStatus> {
-    const item = await groceryItemRepository.getGroceryItem(itemId);
-    if (!item) {
-      throw new Error('Grocery item not found');
+  async calculateNotificationStatus(itemOrId: string | GroceryItem): Promise<NotificationStatus> {
+    // If it's a string, fetch the item
+    if (typeof itemOrId === 'string') {
+      const item = await groceryItemRepository.getGroceryItem(itemOrId);
+      if (!item) {
+        throw new Error('Grocery item not found');
+      }
+      return this.calculateNotificationStatusForItem(item);
     }
-
-    return this.calculateNotificationStatusForItem(item);
+    
+    // If it's an object, use it directly
+    return this.calculateNotificationStatusForItem(itemOrId);
   }
 
   /**

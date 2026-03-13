@@ -15,19 +15,11 @@ describe('ItemHistoryModal Integration', () => {
   let testUserId2: string;
   let testHouseholdId: string;
   let testCategoryId: string;
-  let testItemId: string;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     // Initialize database connection
     await dbConnection.initialize();
     
-    // Create schema if needed
-    try {
-      await db.user.get('test-id');
-    } catch (error) {
-      await schemaManager.createSchema();
-    }
-
     // Create test users
     const user1 = await db.user.create('Alice');
     testUserId1 = user1.id;
@@ -42,21 +34,19 @@ describe('ItemHistoryModal Integration', () => {
     // Create test category
     const category = await db.category.create('Test Category', '#FF6B6B', testHouseholdId);
     testCategoryId = category.id;
+  });
 
-    // Create test grocery item
+  it('should retrieve item creation timestamp (Requirement 6.1.6)', async () => {
     const item = await db.groceryItem.create({
-      name: 'Test Item',
+      name: 'Test Item 1',
       categoryId: testCategoryId,
       householdId: testHouseholdId,
       restockThreshold: 5,
       unit: 'pieces',
       initialStockLevel: 10,
-    });
-    testItemId = item.id;
-  });
-
-  it('should retrieve item creation timestamp (Requirement 6.1.6)', async () => {
-    const history = await db.stock.getItemHistory(testItemId);
+    }, testUserId1);
+    
+    const history = await db.stock.getItemHistory(item.id);
     
     expect(history.itemCreatedAt).toBeDefined();
     expect(typeof history.itemCreatedAt).toBe('number');
@@ -64,19 +54,38 @@ describe('ItemHistoryModal Integration', () => {
   });
 
   it('should display all stock transactions (Requirement 6.1.1)', async () => {
-    // Add some stock transactions
-    await db.stock.add(testItemId, 5, testUserId1);
-    await db.stock.use(testItemId, 3, testUserId2);
-    await db.stock.add(testItemId, 2, testUserId1);
+    const item = await db.groceryItem.create({
+      name: 'Test Item 2',
+      categoryId: testCategoryId,
+      householdId: testHouseholdId,
+      restockThreshold: 5,
+      unit: 'pieces',
+      initialStockLevel: 10,
+    }, testUserId1);
+    
+    await db.stock.add(item.id, 5, testUserId1);
+    await db.stock.use(item.id, 3, testUserId2);
+    await db.stock.add(item.id, 2, testUserId1);
 
-    const history = await db.stock.getItemHistory(testItemId);
+    const history = await db.stock.getItemHistory(item.id);
     
     expect(history.transactions).toBeDefined();
-    expect(history.transactions.length).toBeGreaterThanOrEqual(3);
+    expect(history.transactions.length).toBeGreaterThanOrEqual(4); // 1 initial + 3 new
   });
 
   it('should display user who performed each transaction (Requirement 6.1.2)', async () => {
-    const history = await db.stock.getItemHistory(testItemId);
+    const item = await db.groceryItem.create({
+      name: 'Test Item 3',
+      categoryId: testCategoryId,
+      householdId: testHouseholdId,
+      restockThreshold: 5,
+      unit: 'pieces',
+      initialStockLevel: 10,
+    }, testUserId1);
+    
+    await db.stock.add(item.id, 5, testUserId1);
+    
+    const history = await db.stock.getItemHistory(item.id);
     
     for (const txn of history.transactions) {
       expect(txn.user).toBeDefined();
@@ -87,7 +96,16 @@ describe('ItemHistoryModal Integration', () => {
   });
 
   it('should display timestamp for each transaction (Requirement 6.1.3)', async () => {
-    const history = await db.stock.getItemHistory(testItemId);
+    const item = await db.groceryItem.create({
+      name: 'Test Item 4',
+      categoryId: testCategoryId,
+      householdId: testHouseholdId,
+      restockThreshold: 5,
+      unit: 'pieces',
+      initialStockLevel: 10,
+    }, testUserId1);
+    
+    const history = await db.stock.getItemHistory(item.id);
     
     for (const txn of history.transactions) {
       expect(txn.transaction.timestamp).toBeDefined();
@@ -97,7 +115,16 @@ describe('ItemHistoryModal Integration', () => {
   });
 
   it('should display quantity for each transaction (Requirement 6.1.4)', async () => {
-    const history = await db.stock.getItemHistory(testItemId);
+    const item = await db.groceryItem.create({
+      name: 'Test Item 5',
+      categoryId: testCategoryId,
+      householdId: testHouseholdId,
+      restockThreshold: 5,
+      unit: 'pieces',
+      initialStockLevel: 10,
+    }, testUserId1);
+    
+    const history = await db.stock.getItemHistory(item.id);
     
     for (const txn of history.transactions) {
       expect(txn.transaction.quantity).toBeDefined();
@@ -107,7 +134,16 @@ describe('ItemHistoryModal Integration', () => {
   });
 
   it('should display transaction type (add or use) (Requirement 6.1.5)', async () => {
-    const history = await db.stock.getItemHistory(testItemId);
+    const item = await db.groceryItem.create({
+      name: 'Test Item 6',
+      categoryId: testCategoryId,
+      householdId: testHouseholdId,
+      restockThreshold: 5,
+      unit: 'pieces',
+      initialStockLevel: 10,
+    }, testUserId1);
+    
+    const history = await db.stock.getItemHistory(item.id);
     
     for (const txn of history.transactions) {
       expect(txn.transaction.transactionType).toBeDefined();
@@ -116,9 +152,20 @@ describe('ItemHistoryModal Integration', () => {
   });
 
   it('should sort transactions by timestamp in descending order (Requirement 6.1.7)', async () => {
-    const history = await db.stock.getItemHistory(testItemId);
+    const item = await db.groceryItem.create({
+      name: 'Test Item 7',
+      categoryId: testCategoryId,
+      householdId: testHouseholdId,
+      restockThreshold: 5,
+      unit: 'pieces',
+      initialStockLevel: 10,
+    }, testUserId1);
     
-    // Verify transactions are sorted by timestamp descending (most recent first)
+    await db.stock.add(item.id, 5, testUserId1);
+    await db.stock.use(item.id, 3, testUserId2);
+    
+    const history = await db.stock.getItemHistory(item.id);
+    
     for (let i = 0; i < history.transactions.length - 1; i++) {
       const current = history.transactions[i].transaction.timestamp;
       const next = history.transactions[i + 1].transaction.timestamp;
@@ -127,7 +174,19 @@ describe('ItemHistoryModal Integration', () => {
   });
 
   it('should include both add and use transactions', async () => {
-    const history = await db.stock.getItemHistory(testItemId);
+    const item = await db.groceryItem.create({
+      name: 'Test Item 8',
+      categoryId: testCategoryId,
+      householdId: testHouseholdId,
+      restockThreshold: 5,
+      unit: 'pieces',
+      initialStockLevel: 10,
+    }, testUserId1);
+    
+    await db.stock.add(item.id, 5, testUserId1);
+    await db.stock.use(item.id, 3, testUserId2);
+    
+    const history = await db.stock.getItemHistory(item.id);
     
     const addTransactions = history.transactions.filter(
       txn => txn.transaction.transactionType === 'add'
@@ -141,7 +200,19 @@ describe('ItemHistoryModal Integration', () => {
   });
 
   it('should correctly attribute transactions to different users', async () => {
-    const history = await db.stock.getItemHistory(testItemId);
+    const item = await db.groceryItem.create({
+      name: 'Test Item 9',
+      categoryId: testCategoryId,
+      householdId: testHouseholdId,
+      restockThreshold: 5,
+      unit: 'pieces',
+      initialStockLevel: 10,
+    }, testUserId1);
+    
+    await db.stock.add(item.id, 5, testUserId1);
+    await db.stock.use(item.id, 3, testUserId2);
+    
+    const history = await db.stock.getItemHistory(item.id);
     
     const user1Transactions = history.transactions.filter(
       txn => txn.user.id === testUserId1
@@ -155,8 +226,7 @@ describe('ItemHistoryModal Integration', () => {
   });
 
   it('should handle items with no transactions', async () => {
-    // Create a new item with no transactions
-    const newItem = await db.groceryItem.create({
+    const item = await db.groceryItem.create({
       name: 'Empty Item',
       categoryId: testCategoryId,
       householdId: testHouseholdId,
@@ -165,7 +235,7 @@ describe('ItemHistoryModal Integration', () => {
       initialStockLevel: 0,
     });
 
-    const history = await db.stock.getItemHistory(newItem.id);
+    const history = await db.stock.getItemHistory(item.id);
     
     expect(history.itemCreatedAt).toBeDefined();
     expect(history.transactions).toBeDefined();

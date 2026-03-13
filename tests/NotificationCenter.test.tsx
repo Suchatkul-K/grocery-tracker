@@ -14,16 +14,9 @@ describe('NotificationCenter Integration', () => {
   let testUserId: string;
   let testHouseholdId: string;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     // Initialize database connection
     await dbConnection.initialize();
-    
-    // Create schema if needed
-    try {
-      await db.user.get('test-id');
-    } catch (error) {
-      await schemaManager.createSchema();
-    }
 
     // Create test user and household
     const user = await db.user.create('Test User');
@@ -80,6 +73,14 @@ describe('NotificationCenter Integration', () => {
 
   describe('Notification Retrieval', () => {
     it('should retrieve all notifications for a user', async () => {
+      // Ensure at least one notification exists
+      await db.notification.create(
+        testUserId,
+        testHouseholdId,
+        'ownership_transfer',
+        'Test notification for retrieval'
+      );
+
       const notifications = await db.notification.getUserNotifications(testUserId);
 
       expect(notifications).toBeDefined();

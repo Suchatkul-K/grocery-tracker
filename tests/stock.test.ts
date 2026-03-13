@@ -9,7 +9,7 @@ describe('Stock Operations', () => {
   let item: GroceryItem;
 
   beforeEach(async () => {
-    await db.initialize();
+    // Database is already initialized and reset by global setup
 
     // Create test user
     user = await db.user.create('Test User');
@@ -28,7 +28,7 @@ describe('Stock Operations', () => {
       restockThreshold: 5,
       unit: 'pieces',
       initialStockLevel: 10,
-    });
+    }, user.id);
   });
 
   describe('addStock', () => {
@@ -46,18 +46,21 @@ describe('Stock Operations', () => {
       await db.stock.add(item.id, 5, user.id);
 
       const transactions = db.stock.getTransactions(item.id);
-      expect(transactions).toHaveLength(1);
-      expect(transactions[0].transactionType).toBe('add');
-      expect(transactions[0].quantity).toBe(5);
-      expect(transactions[0].userId).toBe(user.id);
-      expect(transactions[0].groceryItemId).toBe(item.id);
+      expect(transactions).toHaveLength(2); // 1 initial + 1 add
+      
+      // Find the add transaction (not the initial one)
+      const addTransaction = transactions.find(t => t.transactionType === 'add' && t.quantity === 5);
+      expect(addTransaction).toBeDefined();
+      expect(addTransaction!.userId).toBe(user.id);
+      expect(addTransaction!.groceryItemId).toBe(item.id);
     });
 
     it('should include user information in transaction', async () => {
       await db.stock.add(item.id, 5, user.id);
 
       const transactions = db.stock.getTransactionsWithUser(item.id);
-      expect(transactions).toHaveLength(1);
+      // 1 initial + 1 new = 2 transactions
+      expect(transactions).toHaveLength(2);
       expect(transactions[0].user.id).toBe(user.id);
       expect(transactions[0].user.name).toBe('Test User');
       expect(transactions[0].transaction.quantity).toBe(5);
@@ -84,7 +87,8 @@ describe('Stock Operations', () => {
       expect(level).toBe(20); // 10 + 5 + 3 + 2
 
       const transactions = db.stock.getTransactions(item.id);
-      expect(transactions).toHaveLength(3);
+      // 1 initial + 3 new = 4 transactions
+      expect(transactions).toHaveLength(4);
     });
   });
 
@@ -103,7 +107,8 @@ describe('Stock Operations', () => {
       await db.stock.use(item.id, 3, user.id);
 
       const transactions = db.stock.getTransactions(item.id);
-      expect(transactions).toHaveLength(1);
+      // 1 initial + 1 use = 2 transactions
+      expect(transactions).toHaveLength(2);
       expect(transactions[0].transactionType).toBe('use');
       expect(transactions[0].quantity).toBe(3);
       expect(transactions[0].userId).toBe(user.id);
@@ -125,7 +130,8 @@ describe('Stock Operations', () => {
       await db.stock.use(item.id, 15, user.id);
 
       const transactions = db.stock.getTransactions(item.id);
-      expect(transactions).toHaveLength(1);
+      // 1 initial + 1 use = 2 transactions
+      expect(transactions).toHaveLength(2);
       expect(transactions[0].quantity).toBe(15); // Records requested amount
     });
 
@@ -158,7 +164,8 @@ describe('Stock Operations', () => {
       expect(level).toBe(4); // 10 - 2 - 3 - 1
 
       const transactions = db.stock.getTransactions(item.id);
-      expect(transactions).toHaveLength(3);
+      // 1 initial + 3 use = 4 transactions
+      expect(transactions).toHaveLength(4);
     });
   });
 
@@ -203,11 +210,13 @@ describe('Stock Operations', () => {
       await db.stock.add(item.id, 2, user.id);
 
       const transactions = db.stock.getTransactions(item.id);
-      expect(transactions).toHaveLength(3);
+      // 1 initial + 3 new = 4 transactions
+      expect(transactions).toHaveLength(4);
       expect(transactions[0].transactionType).toBe('add'); // Most recent
       expect(transactions[0].quantity).toBe(2);
       expect(transactions[1].transactionType).toBe('use');
-      expect(transactions[2].transactionType).toBe('add'); // Oldest
+      expect(transactions[2].transactionType).toBe('add'); // quantity 5
+      expect(transactions[3].transactionType).toBe('add'); // Initial (oldest)
     });
 
     it('should include all transaction details', async () => {
@@ -232,7 +241,8 @@ describe('Stock Operations', () => {
       await db.stock.use(item.id, 2, user.id);
 
       const transactions = db.stock.getTransactionsWithUser(item.id);
-      expect(transactions).toHaveLength(2);
+      // 1 initial + 2 new = 3 transactions
+      expect(transactions).toHaveLength(3);
 
       transactions.forEach(({ transaction, user: txUser }) => {
         expect(transaction.id).toBeDefined();
@@ -251,9 +261,11 @@ describe('Stock Operations', () => {
       await db.stock.use(item.id, 2, user2.id);
 
       const transactions = db.stock.getTransactionsWithUser(item.id);
-      expect(transactions).toHaveLength(2);
+      // 1 initial + 2 new = 3 transactions
+      expect(transactions).toHaveLength(3);
       expect(transactions[0].user.name).toBe('Second User');
       expect(transactions[1].user.name).toBe('Test User');
+      expect(transactions[2].user.name).toBe('Test User'); // Initial transaction
     });
   });
 
@@ -270,7 +282,8 @@ describe('Stock Operations', () => {
       expect(level).toBe(5);
 
       const transactions = db.stock.getTransactions(item.id);
-      expect(transactions).toHaveLength(5);
+      // 1 initial + 5 new = 6 transactions
+      expect(transactions).toHaveLength(6);
     });
 
     it('should maintain accurate stock level across operations', async () => {

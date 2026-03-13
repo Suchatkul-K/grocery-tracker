@@ -320,7 +320,7 @@ class MembershipRepository extends BaseRepository {
    * Update user role in household
    */
   async updateUserRole(userId: string, householdId: string, role: 'owner' | 'member'): Promise<void> {
-    this.execute(
+    await this.execute(
       'UPDATE household_memberships SET role = ? WHERE user_id = ? AND household_id = ?',
       [role, userId, householdId]
     );

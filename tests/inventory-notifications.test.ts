@@ -13,7 +13,7 @@ describe('Inventory Notifications', () => {
   let category: Category;
 
   beforeEach(async () => {
-    await db.initialize();
+    // Database is already initialized and reset by global setup
     
     // Create test user and household
     user = await db.user.create('Test User');
@@ -30,7 +30,7 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 5,
         initialStockLevel: 5,
-      });
+      }, user.id);
 
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
       
@@ -46,7 +46,7 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 10,
         initialStockLevel: 3,
-      });
+      }, user.id);
 
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
       
@@ -62,7 +62,7 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 5,
         initialStockLevel: 10,
-      });
+      }, user.id);
 
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
       
@@ -77,7 +77,7 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 5,
         initialStockLevel: 2,
-      });
+      }, user.id);
 
       await db.groceryItem.create({
         name: 'Low Stock 2',
@@ -85,7 +85,7 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 10,
         initialStockLevel: 10,
-      });
+      }, user.id);
 
       await db.groceryItem.create({
         name: 'Normal Stock',
@@ -93,7 +93,7 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 5,
         initialStockLevel: 20,
-      });
+      }, user.id);
 
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
       
@@ -110,7 +110,7 @@ describe('Inventory Notifications', () => {
         categoryId: category.id,
         householdId: household.id,
         expirationDate: yesterday,
-      });
+      }, user.id);
 
       const expiringItems = await db.inventory.getExpiringItems(household.id);
       
@@ -189,7 +189,7 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 10,
         initialStockLevel: 5,
-      });
+      }, user.id);
 
       // Expiring only
       await db.groceryItem.create({
@@ -199,7 +199,7 @@ describe('Inventory Notifications', () => {
         restockThreshold: 5,
         initialStockLevel: 20,
         expirationDate: yesterday,
-      });
+      }, user.id);
 
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
       
@@ -217,7 +217,7 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 10,
         initialStockLevel: 5,
-      });
+      }, user.id);
 
       // Expiring only
       const expiringItem = await db.groceryItem.create({
@@ -227,7 +227,7 @@ describe('Inventory Notifications', () => {
         restockThreshold: 5,
         initialStockLevel: 20,
         expirationDate: yesterday,
-      });
+      }, user.id);
 
       const expiringItems = await db.inventory.getExpiringItems(household.id);
       
@@ -246,7 +246,7 @@ describe('Inventory Notifications', () => {
         restockThreshold: 10,
         initialStockLevel: 5,
         expirationDate: yesterday,
-      });
+      }, user.id);
 
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
       const expiringItems = await db.inventory.getExpiringItems(household.id);
@@ -266,9 +266,9 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 5,
         initialStockLevel: 5,
-      });
+      }, user.id);
 
-      const status = db.inventory.calculateNotificationStatus(item);
+      const status = await db.inventory.calculateNotificationStatus(item);
       
       expect(status.isLowStock).toBe(true);
     });
@@ -280,9 +280,9 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 10,
         initialStockLevel: 3,
-      });
+      }, user.id);
 
-      const status = db.inventory.calculateNotificationStatus(item);
+      const status = await db.inventory.calculateNotificationStatus(item);
       
       expect(status.isLowStock).toBe(true);
     });
@@ -294,9 +294,9 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 5,
         initialStockLevel: 10,
-      });
+      }, user.id);
 
-      const status = db.inventory.calculateNotificationStatus(item);
+      const status = await db.inventory.calculateNotificationStatus(item);
       
       expect(status.isLowStock).toBe(false);
     });
@@ -313,7 +313,7 @@ describe('Inventory Notifications', () => {
         expirationDate: yesterday,
       });
 
-      const status = db.inventory.calculateNotificationStatus(item);
+      const status = await db.inventory.calculateNotificationStatus(item);
       
       expect(status.isExpired).toBe(true);
       expect(status.isExpiringSoon).toBe(false);
@@ -329,7 +329,7 @@ describe('Inventory Notifications', () => {
         expirationDate: twoDaysFromNow,
       });
 
-      const status = db.inventory.calculateNotificationStatus(item);
+      const status = await db.inventory.calculateNotificationStatus(item);
       
       expect(status.isExpired).toBe(false);
       expect(status.isExpiringSoon).toBe(true);
@@ -342,7 +342,7 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
       });
 
-      const status = db.inventory.calculateNotificationStatus(item);
+      const status = await db.inventory.calculateNotificationStatus(item);
       
       expect(status.isExpired).toBe(false);
       expect(status.isExpiringSoon).toBe(false);
@@ -359,7 +359,7 @@ describe('Inventory Notifications', () => {
         expirationDate: twoDaysFromNow,
       });
 
-      const status = db.inventory.calculateNotificationStatus(item);
+      const status = await db.inventory.calculateNotificationStatus(item);
       
       expect(status.daysUntilExpiration).toBe(2);
     });
@@ -376,9 +376,9 @@ describe('Inventory Notifications', () => {
         restockThreshold: 10,
         initialStockLevel: 5,
         expirationDate: yesterday,
-      });
+      }, user.id);
 
-      const status = db.inventory.calculateNotificationStatus(item);
+      const status = await db.inventory.calculateNotificationStatus(item);
       
       expect(status.isLowStock).toBe(true);
       expect(status.isExpired).toBe(true);
@@ -394,9 +394,9 @@ describe('Inventory Notifications', () => {
         restockThreshold: 10,
         initialStockLevel: 5,
         expirationDate: twoDaysFromNow,
-      });
+      }, user.id);
 
-      const status = db.inventory.calculateNotificationStatus(item);
+      const status = await db.inventory.calculateNotificationStatus(item);
       
       expect(status.isLowStock).toBe(true);
       expect(status.isExpiringSoon).toBe(true);
@@ -413,7 +413,7 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 10,
         initialStockLevel: 5,
-      });
+      }, user.id);
 
       // Expiring only
       await db.groceryItem.create({
@@ -423,7 +423,7 @@ describe('Inventory Notifications', () => {
         restockThreshold: 5,
         initialStockLevel: 20,
         expirationDate: yesterday,
-      });
+      }, user.id);
 
       // Both
       await db.groceryItem.create({
@@ -433,7 +433,7 @@ describe('Inventory Notifications', () => {
         restockThreshold: 10,
         initialStockLevel: 5,
         expirationDate: twoDaysFromNow,
-      });
+      }, user.id);
 
       // Normal
       await db.groceryItem.create({
@@ -442,7 +442,7 @@ describe('Inventory Notifications', () => {
         householdId: household.id,
         restockThreshold: 5,
         initialStockLevel: 20,
-      });
+      }, user.id);
 
       const itemsWithStatus = await db.inventory.getItemsWithStatus(household.id);
       

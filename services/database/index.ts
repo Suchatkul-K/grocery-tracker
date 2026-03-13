@@ -22,9 +22,9 @@ import {
 /**
  * Initialize the database
  * Must be called before any other database operations
- * Automatically populates sample data if database is empty
+ * @param skipSampleData - If true, skips automatic sample data population (useful for tests)
  */
-export async function initializeDatabase(): Promise<void> {
+export async function initializeDatabase(skipSampleData: boolean = false): Promise<void> {
   await dbConnection.initialize();
   
   // Create schema if this is a new database
@@ -40,8 +40,10 @@ export async function initializeDatabase(): Promise<void> {
     await schemaManager.createSchema();
   }
   
-  // Check and populate sample data if database is empty
-  await checkAndPopulateSampleData();
+  // Check and populate sample data if database is empty (unless skipped)
+  if (!skipSampleData) {
+    await checkAndPopulateSampleData();
+  }
 }
 
 /**
@@ -143,6 +145,7 @@ export const db = {
     getLowStockItems: inventoryService.getLowStockItems.bind(inventoryService),
     getExpiringItems: inventoryService.getExpiringItems.bind(inventoryService),
     calculateNotificationStatus: inventoryService.calculateNotificationStatus.bind(inventoryService),
+    calculateNotificationStatusForItem: inventoryService.calculateNotificationStatusForItem.bind(inventoryService),
     getItemsWithStatus: inventoryService.getItemsWithStatus.bind(inventoryService),
   },
 
@@ -190,5 +193,6 @@ export const databaseService = {
   getLowStockItems: inventoryService.getLowStockItems.bind(inventoryService),
   getExpiringItems: inventoryService.getExpiringItems.bind(inventoryService),
   calculateNotificationStatus: inventoryService.calculateNotificationStatus.bind(inventoryService),
+  calculateNotificationStatusForItem: inventoryService.calculateNotificationStatusForItem.bind(inventoryService),
   getItemsWithStatus: inventoryService.getItemsWithStatus.bind(inventoryService),
 };

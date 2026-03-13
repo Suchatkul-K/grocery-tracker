@@ -91,7 +91,7 @@ describe('Error Handling and Edge Cases', () => {
     });
 
     it('should handle IndexedDB access denied during save', async () => {
-      await db.initialize();
+      // Database is already initialized by global setup
 
       // Mock IndexedDB.open to simulate access denied
       const originalOpen = indexedDB.open;
@@ -116,8 +116,7 @@ describe('Error Handling and Edge Cases', () => {
 
   describe('Database Corruption Recovery', () => {
     it('should create new database when loading corrupted data', async () => {
-      // Initialize a fresh database
-      await db.initialize();
+      // Database is already initialized by global setup
       
       // Create a user to verify database works
       const user = await db.user.create('Test User');
@@ -165,7 +164,7 @@ describe('Error Handling and Edge Cases', () => {
     });
 
     it('should reinitialize database after corruption', async () => {
-      await db.initialize();
+      // Database is already initialized by global setup
       
       // Create some data
       const user = await db.user.create('Test User');
@@ -185,7 +184,7 @@ describe('Error Handling and Edge Cases', () => {
     let item: GroceryItem;
 
     beforeEach(async () => {
-      await db.initialize();
+      // Database is already initialized and reset by global setup
       user = await db.user.create('Test User');
       household = await db.household.create('Test Household', user.id);
       category = await db.category.create('Test Category', household.id);
@@ -196,7 +195,7 @@ describe('Error Handling and Edge Cases', () => {
         restockThreshold: 5,
         unit: 'pieces',
         initialStockLevel: 10,
-      });
+      }, user.id);
     });
 
     it('should set stock to zero when using more than available', async () => {
@@ -228,9 +227,12 @@ describe('Error Handling and Edge Cases', () => {
       await db.stock.use(item.id, 15, user.id);
 
       const transactions = db.stock.getTransactions(item.id);
-      expect(transactions).toHaveLength(1);
-      expect(transactions[0].transactionType).toBe('use');
-      expect(transactions[0].quantity).toBe(15);
+      expect(transactions).toHaveLength(2); // 1 initial + 1 use
+      
+      // Find the use transaction
+      const useTransaction = transactions.find(t => t.transactionType === 'use' && t.quantity === 15);
+      expect(useTransaction).toBeDefined();
+      expect(useTransaction!.quantity).toBe(15);
     });
 
     it('should handle exact stock usage without warning', async () => {
@@ -272,7 +274,7 @@ describe('Error Handling and Edge Cases', () => {
     let category: Category;
 
     beforeEach(async () => {
-      await db.initialize();
+      // Database is already initialized and reset by global setup
       user = await db.user.create('Test User');
       household = await db.household.create('Test Household', user.id);
       category = await db.category.create('Test Category', household.id);
@@ -359,7 +361,7 @@ describe('Error Handling and Edge Cases', () => {
     let category: Category;
 
     beforeEach(async () => {
-      await db.initialize();
+      // Database is already initialized and reset by global setup
       user = await db.user.create('Test User');
       household = await db.household.create('Test Household', user.id);
       category = await db.category.create('Test Category', household.id);
@@ -443,7 +445,7 @@ describe('Error Handling and Edge Cases', () => {
     let category: Category;
 
     beforeEach(async () => {
-      await db.initialize();
+      // Database is already initialized and reset by global setup
       user = await db.user.create('Test User');
       household = await db.household.create('Test Household', user.id);
       category = await db.category.create('Test Category', household.id);
@@ -464,7 +466,9 @@ describe('Error Handling and Edge Cases', () => {
     it('should handle household with no categories', async () => {
       const newHousehold = await db.household.create('Empty Household', user.id);
       const categories = await db.category.getAll(newHousehold.id);
-      expect(categories).toEqual([]);
+      // Household service creates 5 default categories
+      expect(categories).toHaveLength(5);
+      expect(categories.map(c => c.name).sort()).toEqual(['Beverages', 'Dairy', 'Meat', 'Pantry', 'Produce']);
     });
 
     it('should handle household with no items', async () => {
@@ -519,7 +523,7 @@ describe('Error Handling and Edge Cases', () => {
         categoryId: category.id,
         householdId: household.id,
         initialStockLevel: 1000000,
-      });
+      }, user.id);
 
       await db.stock.add(item.id, 1000000, user.id);
       const level = db.stock.getLevel(item.id);
@@ -533,7 +537,7 @@ describe('Error Handling and Edge Cases', () => {
         householdId: household.id,
         initialStockLevel: 2.5,
         unit: 'kg',
-      });
+      }, user.id);
 
       await db.stock.add(item.id, 1.75, user.id);
       const level = db.stock.getLevel(item.id);
@@ -575,7 +579,7 @@ describe('Error Handling and Edge Cases', () => {
         restockThreshold: 10,
         initialStockLevel: 5,
         expirationDate: tomorrow,
-      });
+      }, user.id);
 
       const lowStockItems = await db.inventory.getLowStockItems(household.id);
       const expiringItems = await db.inventory.getExpiringItems(household.id, 3);
@@ -588,8 +592,8 @@ describe('Error Handling and Edge Cases', () => {
       const user2 = await db.user.create('User 2');
       const household2 = await db.household.create('Household 2', user2.id);
 
-      const category1 = await db.category.create('Dairy', household.id);
-      const category2 = await db.category.create('Dairy', household2.id);
+      const category1 = await db.category.create('Snacks', household.id);
+      const category2 = await db.category.create('Snacks', household2.id);
 
       expect(category1.name).toBe(category2.name);
       expect(category1.id).not.toBe(category2.id);
@@ -597,17 +601,17 @@ describe('Error Handling and Edge Cases', () => {
     });
 
     it('should reject duplicate category names in same household', async () => {
-      await db.category.create('Dairy', household.id);
+      await db.category.create('Snacks', household.id);
       
       await expect(
-        db.category.create('Dairy', household.id)
+        db.category.create('Snacks', household.id)
       ).rejects.toThrow();
     });
   });
 
   describe('Database Persistence', () => {
     it('should save to IndexedDB after operations', async () => {
-      await db.initialize();
+      // Database is already initialized by global setup
       
       const user = await db.user.create('Persistent User');
       
@@ -616,7 +620,7 @@ describe('Error Handling and Edge Cases', () => {
     });
 
     it('should handle save failures gracefully', async () => {
-      await db.initialize();
+      // Database is already initialized by global setup
       
       // Mock IndexedDB to fail on save
       const originalOpen = indexedDB.open;

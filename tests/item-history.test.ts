@@ -8,7 +8,7 @@ describe('Item History Tracking', () => {
   let itemId: string;
 
   beforeEach(async () => {
-    await db.initialize();
+    // Database is already initialized and reset by global setup
 
     // Create test user
     const user = await db.user.create('Test User');
@@ -30,7 +30,7 @@ describe('Item History Tracking', () => {
       restockThreshold: 5,
       unit: 'pieces',
       initialStockLevel: 10,
-    });
+    }, userId);
     itemId = item.id;
   });
 
@@ -42,12 +42,15 @@ describe('Item History Tracking', () => {
     expect(history.itemCreatedAt).toBeGreaterThan(0);
   });
 
-  it('should return empty transactions for new item', () => {
+  it('should include initial stock transaction for item created with stock', () => {
     const history = db.stock.getItemHistory(itemId);
 
     expect(history.transactions).toBeDefined();
     expect(Array.isArray(history.transactions)).toBe(true);
-    expect(history.transactions).toHaveLength(0);
+    // Item was created with initialStockLevel: 10, so should have 1 transaction
+    expect(history.transactions).toHaveLength(1);
+    expect(history.transactions[0].transaction.transactionType).toBe('add');
+    expect(history.transactions[0].transaction.quantity).toBe(10);
   });
 
   it('should include all stock transactions with user information', async () => {
@@ -62,7 +65,8 @@ describe('Item History Tracking', () => {
 
     const history = db.stock.getItemHistory(itemId);
 
-    expect(history.transactions).toHaveLength(3);
+    // Should have 4 transactions: 1 initial + 3 new
+    expect(history.transactions).toHaveLength(4);
     
     // Verify transactions are sorted by timestamp descending (most recent first)
     expect(history.transactions[0].transaction.transactionType).toBe('add');
@@ -73,6 +77,9 @@ describe('Item History Tracking', () => {
     
     expect(history.transactions[2].transaction.transactionType).toBe('add');
     expect(history.transactions[2].transaction.quantity).toBe(5);
+    
+    expect(history.transactions[3].transaction.transactionType).toBe('add');
+    expect(history.transactions[3].transaction.quantity).toBe(10);
   });
 
   it('should include user information for each transaction', async () => {
@@ -80,7 +87,8 @@ describe('Item History Tracking', () => {
 
     const history = db.stock.getItemHistory(itemId);
 
-    expect(history.transactions).toHaveLength(1);
+    // 1 initial + 1 new = 2 transactions
+    expect(history.transactions).toHaveLength(2);
     expect(history.transactions[0].user).toBeDefined();
     expect(history.transactions[0].user.id).toBe(userId);
     expect(history.transactions[0].user.name).toBe('Test User');
@@ -94,7 +102,8 @@ describe('Item History Tracking', () => {
 
     const history = db.stock.getItemHistory(itemId);
 
-    expect(history.transactions).toHaveLength(1);
+    // 1 initial + 1 new = 2 transactions
+    expect(history.transactions).toHaveLength(2);
     
     const transaction = history.transactions[0].transaction;
     expect(transaction.transactionType).toBe('add');
@@ -117,7 +126,8 @@ describe('Item History Tracking', () => {
 
     const history = db.stock.getItemHistory(itemId);
 
-    expect(history.transactions).toHaveLength(3);
+    // 1 initial + 3 new = 4 transactions
+    expect(history.transactions).toHaveLength(4);
     
     // Verify timestamps are in descending order
     for (let i = 0; i < history.transactions.length - 1; i++) {
@@ -143,12 +153,14 @@ describe('Item History Tracking', () => {
 
     const history = db.stock.getItemHistory(itemId);
 
-    expect(history.transactions).toHaveLength(3);
+    // 1 initial + 3 new = 4 transactions
+    expect(history.transactions).toHaveLength(4);
     
     // Verify different users are tracked
     expect(history.transactions[0].user.name).toBe('Second User');
     expect(history.transactions[1].user.name).toBe('Second User');
     expect(history.transactions[2].user.name).toBe('Test User');
+    expect(history.transactions[3].user.name).toBe('Test User');
   });
 
   it('should preserve item creation timestamp regardless of transactions', async () => {

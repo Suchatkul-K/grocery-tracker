@@ -3,12 +3,9 @@
  * Verifies first-use detection and sample data population
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
-import { dbConnection } from '@/services/database/core/connection';
-import { schemaManager } from '@/services/database/core/schema';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '@/services/database';
 import { 
-  isDatabaseEmpty, 
   populateSampleData 
 } from '@/services/database/services/sample-data-population.service';
 import { SAMPLE_CATEGORIES, getSampleDataSummary } from '@/services/database/services/sample-data.service';
@@ -16,24 +13,10 @@ import { SAMPLE_CATEGORIES, getSampleDataSummary } from '@/services/database/ser
 describe('Sample Data Population', () => {
   let sampleDataResult: Awaited<ReturnType<typeof populateSampleData>>;
 
-  beforeAll(async () => {
-    // Initialize database connection
-    await dbConnection.initialize();
-    
-    // Create schema if needed
-    try {
-      await db.user.get('test-id');
-    } catch (error) {
-      await schemaManager.createSchema();
-    }
-
-    // Check if database is empty
-    const isEmpty = await isDatabaseEmpty();
-    
-    // Populate sample data once for all tests
-    if (isEmpty) {
-      sampleDataResult = await populateSampleData();
-    }
+  beforeEach(async () => {
+    // Database is already initialized and reset by global setup
+    // Populate sample data for each test
+    sampleDataResult = await populateSampleData();
   });
 
   describe('Sample Data Creation', () => {
