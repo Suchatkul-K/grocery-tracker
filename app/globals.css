@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles for Grocery Tracker */
+
+/* Ensure smooth transitions for all interactive elements (Requirement 11.5) */
+@layer base {
+  * {
+    @apply transition-colors duration-200;
+  }
+  
+  /* Remove transition from animations to avoid conflicts */
+  *:where(.animate-spin, .animate-pulse, .animate-bounce) {
+    transition: none;
+  }
+}
+
+/* Custom scrollbar styling for a more polished look */
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+}
+
+/* Focus styles for accessibility and visual feedback */
+@layer base {
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  }
+}
+
+/* Smooth animations for modals and dropdowns */
+@layer utilities {
+  .fade-in {
+    animation: fadeIn 200ms ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  .slide-in-up {
+    animation: slideInUp 200ms ease-out;
+  }
+  
+  @keyframes slideInUp {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
