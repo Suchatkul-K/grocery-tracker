@@ -163,7 +163,7 @@ export function HouseholdManagement() {
 
         {userHouseholds.length === 0 ? (
           <div className="p-6 text-center">
-            <p className="text-gray-500">You don't have any households yet.</p>
+            <p className="text-gray-500">You don{`&apos;`}t have any households yet.</p>
             <p className="text-sm text-gray-400 mt-2">Create your first household above to get started.</p>
           </div>
         ) : (
@@ -289,7 +289,7 @@ export function HouseholdManagement() {
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-800">Pending Join Requests</h2>
             <p className="text-sm text-gray-600 mt-1">
-              Requests you've sent to join households
+              Requests you{`&apos;`}ve sent to join households
             </p>
           </div>
 

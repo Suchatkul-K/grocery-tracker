@@ -100,7 +100,7 @@ export function AddStockModal({ item, onAdd, onCancel }: AddStockModalProps) {
                 disabled={isSubmitting}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Set expiration date for this batch (will update item's expiration if earlier)
+                Set expiration date for this batch (will update item{`&apos;`}s expiration if earlier)
               </p>
             </div>
 
